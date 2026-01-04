@@ -74,6 +74,11 @@
                 <i class="fa-solid fa-address-book w-6 text-center"></i>
                 <span class="font-medium">Directorio</span>
             </a>
+            <a href="#" onclick="Router.navigate('trainings')"
+                class="nav-item flex items-center space-x-3 px-4 py-3 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition-colors">
+                <i class="fa-solid fa-chalkboard-teacher w-6 text-center"></i>
+                <span class="font-medium">Formaciones</span>
+            </a>
             <a href="#" onclick="Router.navigate('search')"
                 class="nav-item flex items-center space-x-3 px-4 py-3 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition-colors">
                 <i class="fa-solid fa-users w-6 text-center"></i>
@@ -113,16 +118,65 @@
 
             <!-- VIEW: DASHBOARD -->
             <section id="view-dashboard" class="space-y-6 animate-fade-in">
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <!-- KPI GRID -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                    <!-- Card 1: Empleados -->
                     <div
-                        class="bg-white p-6 rounded-xl shadow-sm border border-slate-100 flex items-center justify-between">
+                        class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex items-center justify-between">
                         <div>
-                            <p class="text-sm text-slate-500 uppercase font-semibold">Total Empleados</p>
-                            <h3 class="text-3xl font-bold text-slate-800 mt-1" id="kpi-total">0</h3>
+                            <p class="text-xs text-slate-500 uppercase font-bold">Empleados</p>
+                            <h3 class="text-2xl font-bold text-slate-800 mt-1" id="kpi-total">0</h3>
                         </div>
-                        <div
-                            class="h-12 w-12 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center text-xl">
+                        <div class="h-10 w-10 bg-slate-100 text-slate-600 rounded-lg flex items-center justify-center">
                             <i class="fa-solid fa-users"></i>
+                        </div>
+                    </div>
+
+                    <!-- Card 2: Cumplimiento -->
+                    <div
+                        class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex items-center justify-between">
+                        <div>
+                            <p class="text-xs text-slate-500 uppercase font-bold">% Cumplimiento</p>
+                            <h3 class="text-2xl font-bold text-blue-600 mt-1"><span id="kpi-compliance">0</span>%</h3>
+                        </div>
+                        <div class="h-10 w-10 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center">
+                            <i class="fa-solid fa-chart-pie"></i>
+                        </div>
+                    </div>
+
+                    <!-- Card 3: Asignaciones -->
+                    <div
+                        class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex items-center justify-between">
+                        <div>
+                            <p class="text-xs text-slate-500 uppercase font-bold">Asignaciones</p>
+                            <h3 class="text-2xl font-bold text-slate-700 mt-1" id="kpi-assignments">0</h3>
+                        </div>
+                        <div class="h-10 w-10 bg-indigo-50 text-indigo-600 rounded-lg flex items-center justify-center">
+                            <i class="fa-solid fa-clipboard-list"></i>
+                        </div>
+                    </div>
+
+                    <!-- Card 4: Pendientes -->
+                    <div
+                        class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex items-center justify-between border-l-4 border-l-amber-400">
+                        <div>
+                            <p class="text-xs text-slate-500 uppercase font-bold">Pendientes</p>
+                            <h3 class="text-2xl font-bold text-amber-600 mt-1" id="kpi-pending">0</h3>
+                        </div>
+                        <div class="h-10 w-10 bg-amber-50 text-amber-600 rounded-lg flex items-center justify-center">
+                            <i class="fa-solid fa-clock"></i>
+                        </div>
+                    </div>
+
+                    <!-- Card 5: Vencidas -->
+                    <div
+                        class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex items-center justify-between border-l-4 border-l-red-500">
+                        <div>
+                            <p class="text-xs text-slate-500 uppercase font-bold">Vencidas</p>
+                            <h3 class="text-2xl font-bold text-red-600 mt-1" id="kpi-overdue">0</h3>
+                        </div>
+                        <div class="h-10 w-10 bg-red-50 text-red-600 rounded-lg flex items-center justify-center">
+                            <i class="fa-solid fa-triangle-exclamation"></i>
                         </div>
                     </div>
                 </div>
@@ -171,6 +225,44 @@
                         </tbody>
                     </table>
                     <div id="dir-empty" class="hidden p-8 text-center text-slate-400">No se encontraron resultados</div>
+                </div>
+            </section>
+
+            <!-- VIEW: TRAININGS (V4.0) -->
+            <section id="view-trainings" class="hidden space-y-6 animate-fade-in">
+                <div
+                    class="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm border border-slate-100">
+                    <div class="relative w-96">
+                        <i class="fa-solid fa-search absolute left-3 top-3 text-slate-400"></i>
+                        <input type="text" id="train-search" onkeyup="Trainings.filter()" placeholder="Buscar tema..."
+                            class="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-200 outline-none">
+                    </div>
+                    <button onclick="Trainings.refresh()"
+                        class="text-blue-600 hover:bg-blue-50 px-3 py-2 rounded-lg transition-colors">
+                        <i class="fa-solid fa-sync-alt mr-1"></i> Actualizar
+                    </button>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+                    <table class="w-full text-left">
+                        <thead class="bg-slate-50 text-xs uppercase text-slate-500 font-bold">
+                            <tr>
+                                <th class="px-6 py-3">Enfoque</th>
+                                <th class="px-6 py-3">Tema / Formación</th>
+                                <th class="px-6 py-3 text-center text-blue-600"><i class="fa-solid fa-user-check"
+                                        title="Asignadas"></i></th>
+                                <th class="px-6 py-3 text-center text-amber-500"><i class="fa-solid fa-clock"
+                                        title="Pendientes"></i></th>
+                                <th class="px-6 py-3 text-center text-red-500"><i
+                                        class="fa-solid fa-triangle-exclamation" title="Vencidas"></i></th>
+                                <th class="px-6 py-3 text-center">% Cump.</th>
+                                <th class="px-6 py-3 text-center">Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody id="train-table-body" class="divide-y divide-slate-100 text-sm">
+                            <!-- Rows -->
+                        </tbody>
+                    </table>
                 </div>
             </section>
 
@@ -251,6 +343,78 @@
         </div>
     </main>
 
+    <!-- MODAL BULK ASSIGNMENT (V4.0) -->
+    <div id="modal-bulk"
+        class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div class="bg-slate-50 px-6 py-4 border-b border-slate-100 flex justify-between items-center shrink-0">
+                <h3 class="font-bold text-slate-700">Programar Formación</h3>
+                <button onclick="BulkModal.close()" class="text-slate-400 hover:text-red-500"><i
+                        class="fa-solid fa-times text-xl"></i></button>
+            </div>
+
+            <div class="p-6 overflow-y-auto space-y-6">
+
+                <!-- Info Tema -->
+                <div class="bg-blue-50 p-4 rounded-lg border border-blue-100">
+                    <p class="text-xs font-bold text-blue-500 uppercase">Tema Seleccionado</p>
+                    <h2 id="bulk-tema-display" class="text-lg font-bold text-blue-900 mt-1">Liderazgo Efectivo</h2>
+                </div>
+
+                <!-- Fechas y Link -->
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Fecha Inicio</label>
+                        <input type="date" id="bulk-start" class="w-full border rounded-lg px-3 py-2 text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Fecha Fin</label>
+                        <input type="date" id="bulk-end" class="w-full border rounded-lg px-3 py-2 text-sm">
+                    </div>
+                    <div class="col-span-2">
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Link / Ubicación <span
+                                class="text-slate-300 font-normal">(Opcional)</span></label>
+                        <input type="text" id="bulk-link" class="w-full border rounded-lg px-3 py-2 text-sm"
+                            placeholder="https://meet.google.com/...">
+                    </div>
+                </div>
+
+                <!-- Selector de Personas -->
+                <div class="border-t pt-4">
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Asignar a Empleados</label>
+
+                    <!-- Buscador Empleados -->
+                    <div class="relative mb-3">
+                        <i class="fa-solid fa-search absolute left-3 top-2.5 text-slate-400 text-sm"></i>
+                        <input type="text" id="bulk-emp-search" onkeyup="BulkModal.filterEmployees()"
+                            placeholder="Buscar por nombre o cédula..."
+                            class="w-full pl-9 pr-4 py-2 border rounded-lg text-sm outline-none focus:border-blue-500">
+                    </div>
+
+                    <!-- Lista de Selección -->
+                    <div class="border rounded-lg h-48 overflow-y-auto p-2 space-y-1 bg-slate-50" id="bulk-emp-list">
+                        <!-- Items generados dinámicamente -->
+                    </div>
+
+                    <div class="flex justify-between items-center mt-2 text-sm">
+                        <span class="text-slate-500"><span id="bulk-count" class="font-bold text-slate-800">0</span>
+                            seleccionados</span>
+                        <button onclick="BulkModal.selectAll()"
+                            class="text-blue-600 font-bold hover:underline">Seleccionar Todos</button>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="p-6 border-t bg-slate-50 shrink-0">
+                <button onclick="BulkModal.submit()"
+                    class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-bold shadow-lg transition-all">
+                    Confirmar Asignación
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- MODAL ASSIGNMENT -->
     <div id="modal-assign"
         class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
@@ -299,7 +463,6 @@
                 document.querySelectorAll('section').forEach(el => el.classList.add('hidden'));
                 document.getElementById(`view-${viewId}`).classList.remove('hidden');
 
-                // Update Sidebar
                 document.querySelectorAll('.nav-item').forEach(el => {
                     const isActive = el.getAttribute('onclick').includes(viewId);
                     el.className = isActive
@@ -309,6 +472,7 @@
 
                 if (viewId === 'dashboard') API.getStats();
                 if (viewId === 'directory') Directory.load();
+                if (viewId === 'trainings') Trainings.load();
             }
         };
 
@@ -326,16 +490,27 @@
                 UI.loader(true);
                 google.script.run.withSuccessHandler(Directory.render).getAllEmployees();
             },
-            assignTraining: (cedula, tema, estado) => {
+            getTrainingCatalog: () => {
+                UI.loader(true);
+                google.script.run.withSuccessHandler(Trainings.render).getTrainingCatalog();
+            },
+            assignTrainingMask: (cedulas, tema, start, end, link) => {
                 UI.loader(true);
                 google.script.run
-                    .withSuccessHandler(() => {
-                        alert("Asignación guardada con éxito.");
-                        Modal.close();
-                        API.searchEmployee(cedula); // Refresh view
+                    .withSuccessHandler((msg) => {
+                        alert(msg);
+                        BulkModal.close();
+                        UI.loader(false);
                     })
-                    .withFailureHandler(err => alert("Error: " + err))
-                    .assignTraining(cedula, tema, 'INDIVIDUAL', estado);
+                    .withFailureHandler(err => {
+                        alert("Error: " + err);
+                        UI.loader(false);
+                    })
+                    .assignTrainingBulk(cedulas, tema, start, end, link, 'PENDIENTE');
+            },
+            // Legacy wrapper
+            assignTraining: (cedula, tema, estado) => {
+                API.assignTrainingMask([cedula], tema, '', '', '');
             },
             saveConfig: (id) => {
                 google.script.run.setConfig(id);
@@ -357,6 +532,164 @@
                         out.innerText = "Error ejecutando diagnóstico: " + err;
                     })
                     .diagnoseConnection();
+            }
+        };
+
+        // TRAININGS CONTROLLER (V4)
+        const Trainings = {
+            data: [],
+            load: () => {
+                if (Trainings.data.length === 0) API.getTrainingCatalog();
+                else Trainings.render(JSON.stringify(Trainings.data));
+            },
+            refresh: () => API.getTrainingCatalog(),
+            render: (json) => {
+                UI.loader(false);
+                const list = typeof json === 'string' ? JSON.parse(json) : json;
+                // Unique filter just in case
+                const unique = [];
+                const seen = new Set();
+                list.forEach(item => {
+                    if (!seen.has(item.tema)) {
+                        seen.add(item.tema);
+                        unique.push(item);
+                    }
+                });
+
+                Trainings.data = unique.sort((a, b) => a.enfoque.localeCompare(b.enfoque));
+                Trainings.filter();
+            },
+            filter: () => {
+                const term = document.getElementById('train-search').value.toLowerCase();
+                const tbody = document.getElementById('train-table-body');
+                tbody.innerHTML = '';
+
+                const filtered = Trainings.data.filter(t => t.tema.toLowerCase().includes(term));
+
+                filtered.forEach(t => {
+                    // Sanitize for inline HTML attribute: Escape quotes and newlines
+                    const safeTema = t.tema.replace(/'/g, "\\\\'").replace(/"/g, "&quot;").replace(/\n/g, " ");
+                    const s = t.stats || { asignada: 0, pendiente: 0, vencida: 0, cumplimiento: 0 };
+
+                    const tr = document.createElement('tr');
+                    tr.className = "hover:bg-slate-50 transition-colors border-b border-slate-50";
+                    tr.innerHTML = `
+                         <td class="px-6 py-4 font-bold text-slate-500 text-xs uppercase">${t.enfoque}</td>
+                         <td class="px-6 py-4 font-medium text-slate-800">${t.tema}</td>
+                         
+                         <!-- COLS: ASIG | PEND | VENC | % -->
+                         <td class="px-6 py-4 text-center font-bold text-blue-700">${s.asignada}</td>
+                         <td class="px-6 py-4 text-center font-bold text-amber-600">${s.pendiente}</td>
+                         <td class="px-6 py-4 text-center font-bold text-red-600">${s.vencida}</td>
+                         <td class="px-6 py-4 text-center">
+                            <div class="flex items-center justify-center space-x-2">
+                                <span class="text-xs font-bold text-slate-700">${s.cumplimiento}%</span>
+                                <div class="w-10 bg-slate-200 rounded-full h-1.5">
+                                    <div class="bg-green-500 h-1.5 rounded-full" style="width: ${s.cumplimiento}%"></div>
+                                </div>
+                            </div>
+                         </td>
+
+                         <td class="px-6 py-4 text-center">
+                             <button onclick="BulkModal.open('${safeTema}')" 
+                                class="bg-blue-100 text-blue-700 hover:bg-blue-200 px-3 py-1 rounded text-xs font-bold transition-colors">
+                                Programar
+                             </button>
+                         </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
+        };
+
+        // BULK MODAL CONTROLLER (V4)
+        const BulkModal = {
+            employees: [], // Cache of employees for selection
+            selected: new Set(),
+            currentTema: '',
+
+            open: (tema) => {
+                BulkModal.currentTema = tema;
+                document.getElementById('bulk-tema-display').innerText = tema;
+                document.getElementById('bulk-start').value = '';
+                document.getElementById('bulk-end').value = '';
+                document.getElementById('bulk-link').value = '';
+                document.getElementById('bulk-count').innerText = '0';
+                BulkModal.selected.clear();
+                document.getElementById('modal-bulk').classList.remove('hidden');
+
+                // Load employees if not loaded
+                if (Directory.data.length === 0) {
+                    UI.loader(true);
+                    google.script.run.withSuccessHandler((json) => {
+                        UI.loader(false);
+                        Directory.data = JSON.parse(json); // Sync with Directory cache
+                        BulkModal.employees = Directory.data;
+                        BulkModal.renderEmployees();
+                    }).getAllEmployees();
+                } else {
+                    BulkModal.employees = Directory.data;
+                    BulkModal.renderEmployees();
+                }
+            },
+            close: () => document.getElementById('modal-bulk').classList.add('hidden'),
+
+            renderEmployees: () => {
+                const container = document.getElementById('bulk-emp-list');
+                container.innerHTML = '';
+                const term = document.getElementById('bulk-emp-search').value.toLowerCase();
+
+                const filtered = BulkModal.employees.filter(e =>
+                    e.nombre.toLowerCase().includes(term) || e.cedula.includes(term)
+                );
+
+                // Limit render for performance
+                filtered.slice(0, 50).forEach(e => {
+                    const isSelected = BulkModal.selected.has(e.cedula);
+                    const el = document.createElement('div');
+                    el.className = `p-2 rounded cursor-pointer flex justify-between items-center text-sm ${isSelected ? 'bg-blue-100 border-blue-200' : 'hover:bg-slate-100'}`;
+                    el.onclick = () => BulkModal.toggle(e.cedula);
+                    el.innerHTML = `
+                        <div>
+                            <span class="font-bold text-slate-700 block">${e.nombre}</span>
+                            <span class="text-xs text-slate-500">${e.cargo}</span>
+                        </div>
+                        ${isSelected ? '<i class="fa-solid fa-check-circle text-blue-600"></i>' : '<i class="fa-regular fa-circle text-slate-300"></i>'}
+                     `;
+                    container.appendChild(el);
+                });
+            },
+            filterEmployees: () => BulkModal.renderEmployees(),
+
+            toggle: (cedula) => {
+                if (BulkModal.selected.has(cedula)) BulkModal.selected.delete(cedula);
+                else BulkModal.selected.add(cedula);
+                document.getElementById('bulk-count').innerText = BulkModal.selected.size;
+                BulkModal.renderEmployees();
+            },
+
+            selectAll: () => {
+                // Select currently filtered
+                const term = document.getElementById('bulk-emp-search').value.toLowerCase();
+                BulkModal.employees.filter(e =>
+                    e.nombre.toLowerCase().includes(term) || e.cedula.includes(term)
+                ).forEach(e => BulkModal.selected.add(e.cedula));
+
+                document.getElementById('bulk-count').innerText = BulkModal.selected.size;
+                BulkModal.renderEmployees();
+            },
+
+            submit: () => {
+                if (BulkModal.selected.size === 0) return alert("Selecciona al menos un empleado.");
+                const tema = BulkModal.currentTema;
+                const start = document.getElementById('bulk-start').value;
+                const end = document.getElementById('bulk-end').value;
+                const link = document.getElementById('bulk-link').value;
+
+                if (!start) return alert("Selecciona fecha de inicio.");
+
+                const cedulas = Array.from(BulkModal.selected); // Convert Set to Array
+                API.assignTrainingMask(cedulas, tema, start, end, link);
             }
         };
 
