@@ -304,6 +304,89 @@ function getTrainingCatalog() {
   return JSON.stringify(Array.from(result.values()));
 }
 
+function getTrainingDetails(targetTema) {
+  const empleados = getData('Maestra', 'CEDULA');
+  const matriz = getData('Matriz_grupos', 'CARGO');
+  const asignaciones = getData('Asignaciones_Individuales', 'TEMA');
+  const formaciones = getData('Formaciones', 'TEMA');
+
+  // 1. Identificar Cargos que tienen este tema (Matrix)
+  const cargosConTema = new Set();
+  
+  // Buscar a qué grupo pertenece este tema
+  // Invertido: Buscamos en Formaciones su 'POBLACION' y vemos con qué header de Matriz matchea
+  const formacion = formaciones.find(f => (f['TEMA'] || f['CURSO']) === targetTema);
+  if (formacion) {
+      const poblacion = String(formacion['POBLACION'] || formacion['POBLACION_META'] || '').trim();
+      const headerGrupo = normalizeHeader(poblacion); // e.g., 'ABASTECIMIENTO_RESPONSABLE'
+
+      matriz.forEach(row => {
+          const val = row[headerGrupo]; // Check si este cargo tiene X en esa columna
+          if (val == 1 || String(val).toLowerCase() === 'x' || val === true) {
+             const cargo = row['DESCRIPCION_CARGO'] || row['CARGO'];
+             if(cargo) cargosConTema.add(cargo);
+          }
+      });
+  }
+
+  // 2. Indexar Asignaciones Individuales para este tema
+  const asigMap = new Map(); // Cedula -> Row
+  asignaciones.filter(r => r['TEMA'] === targetTema).forEach(r => {
+      asigMap.set(String(r['CEDULA_EMPLEADO']), r);
+  });
+
+  const resultados = [];
+  const hoy = new Date();
+  hoy.setHours(0,0,0,0);
+
+  // 3. Evaluar cada empleado
+  empleados.forEach(emp => {
+      if(emp['ESTADO'] && emp['ESTADO'] !== 'ACTIVO') return;
+
+      const cedula = String(emp['CEDULA'] || emp['DOCUMENTO']);
+      const cargo = emp['DESCRIPCION_CARGO'] || emp['CARGO'];
+      const nombre = emp['NOMBRE_COMPLETO'] || emp['NOMBRE'];
+
+      let estado = 'N/A';
+      let origen = '';
+
+      // A. Check Matriz
+      if (cargosConTema.has(cargo)) {
+          estado = 'PENDIENTE';
+          origen = 'MATRIZ';
+      }
+
+      // B. Check Individual (Override)
+      if (asigMap.has(cedula)) {
+          const row = asigMap.get(cedula);
+          let estadoInd = row['ESTADO'] || 'PENDIENTE';
+          // Vencido logic
+          const fin = row['FECHA_FIN'] ? new Date(row['FECHA_FIN']) : null;
+          if (estadoInd !== 'COMPLETADO' && fin && fin < hoy) {
+              estadoInd = 'VENCIDO';
+          } else if (estadoInd === 'PENDIENTE') {
+              estadoInd = 'ASIGNADO';
+          }
+          
+          estado = estadoInd; // Override
+          origen = (origen === 'MATRIZ') ? 'MATRIZ + INDIV' : 'INDIVIDUAL';
+      }
+
+      // 4. FILTRO FINAL: Excluir Pendientes y N/A
+      if (estado !== 'PENDIENTE' && estado !== 'N/A') {
+          resultados.push({
+              cedula: cedula,
+              nombre: nombre,
+              cargo: cargo,
+              estado: estado,
+              origen: origen
+          });
+      }
+  });
+
+  return JSON.stringify(resultados);
+}
+
 function assignTrainingBulk(cedulas, tema, fechaInicio, fechaFin, link, estado) {
   try {
     const id = getConfig();
