@@ -173,6 +173,7 @@ function getTrainingsForEmployeeLogic(empleado) {
           return gruposActivos.some(grupoKey => normalizeHeader(pob) === grupoKey);
         }).map(f => ({
           TEMA: f['TEMA'] || f['CURSO'],
+          ENFOQUE: f['ENFOQUE'] || 'GENERAL', // Nuevo Campo
           POBLACION: f['POBLACION'] || f['POBLACION_META'],
           ESTADO: f['ESTADO'] || 'PENDIENTE',
           ORIGEN: 'MATRIZ'
