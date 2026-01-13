@@ -4,959 +4,943 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestor de Formaciones</title>
+    <title>Gestión de Formación Corporativa</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Font Awesome -->
+    <!-- Flowbite -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.css" rel="stylesheet" />
+    <!-- Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-    <style>
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: #f1f5f9;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 4px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8;
-        }
-
-        .animate-fade-in {
-            animation: fadeIn 0.3s ease-out;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0f9ff',
+                            600: '#0284c7',
+                            800: '#075985',
+                        }
+                    }
+                }
             }
         }
-    </style>
+    </script>
 </head>
 
-<body class="bg-slate-50 text-slate-800 font-sans h-screen flex overflow-hidden">
+<body class="bg-gray-50 flex h-screen overflow-hidden">
 
     <!-- SIDEBAR -->
-    <aside class="w-64 bg-slate-900 text-white flex flex-col shadow-xl z-20">
-        <div class="p-6 border-b border-slate-800 flex items-center space-x-3">
-            <div class="h-10 w-10 bg-blue-600 rounded-lg flex items-center justify-center text-xl font-bold">
-                <i class="fa-solid fa-graduation-cap"></i>
-            </div>
-            <div>
-                <h1 class="font-bold text-lg leading-tight tracking-wide">CORP<span class="text-blue-400">TRAIN</span>
-                </h1>
-            </div>
+    <aside class="w-64 bg-slate-900 text-white flex-shrink-0 hidden md:flex flex-col transition-all duration-300">
+        <div class="h-16 flex items-center justify-center border-b border-slate-700">
+            <h2 class="text-xl font-bold tracking-wider"><i class="fas fa-graduation-cap mr-2"></i>PASTAS</h2>
         </div>
-
-        <nav class="flex-1 p-4 space-y-2 mt-4">
-            <a href="#" onclick="Router.navigate('dashboard')"
-                class="nav-item flex items-center space-x-3 px-4 py-3 rounded-lg bg-blue-600 text-white">
-                <i class="fa-solid fa-chart-pie w-6 text-center"></i>
+        <nav class="flex-1 px-2 py-4 space-y-2">
+            <a href="#" id="nav-dashboard" onclick="showView('dashboard'); return false;"
+                class="flex items-center px-4 py-3 bg-brand-600 rounded-lg text-white hover:bg-brand-500 transition-colors group">
+                <i class="fas fa-chart-pie w-6"></i>
                 <span class="font-medium">Dashboard</span>
             </a>
-            <a href="#" onclick="Router.navigate('directory')"
-                class="nav-item flex items-center space-x-3 px-4 py-3 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition-colors">
-                <i class="fa-solid fa-address-book w-6 text-center"></i>
-                <span class="font-medium">Directorio</span>
+            <a href="#" id="nav-kardex" onclick="showView('kardex'); return false;"
+                class="flex items-center px-4 py-3 text-slate-300 hover:bg-slate-800 rounded-lg hover:text-white transition-colors group">
+                <i class="fas fa-users w-6"></i>
+                <span class="font-medium">Colaboradores</span>
             </a>
-            <a href="#" onclick="Router.navigate('trainings')"
-                class="nav-item flex items-center space-x-3 px-4 py-3 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition-colors">
-                <i class="fa-solid fa-chalkboard-teacher w-6 text-center"></i>
+            <a href="#" id="nav-trainings" onclick="showView('trainings'); return false;"
+                class="flex items-center px-4 py-3 text-slate-300 hover:bg-slate-800 rounded-lg hover:text-white transition-colors group">
+                <i class="fas fa-book w-6"></i>
                 <span class="font-medium">Formaciones</span>
             </a>
-            <a href="#" onclick="Router.navigate('search')"
-                class="nav-item flex items-center space-x-3 px-4 py-3 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition-colors">
-                <i class="fa-solid fa-users w-6 text-center"></i>
-                <span class="font-medium">Consulta Individual</span>
-            </a>
-            <a href="#" onclick="Router.navigate('config')"
-                class="nav-item flex items-center space-x-3 px-4 py-3 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition-colors">
-                <i class="fa-solid fa-cog w-6 text-center"></i>
-                <span class="font-medium">Configuración</span>
-            </a>
         </nav>
+        <div class="p-4 border-t border-slate-700 text-xs text-slate-400 text-center">
+            v1.0.0 &copy; 2026
+        </div>
     </aside>
 
     <!-- MAIN CONTENT -->
-    <main class="flex-1 flex flex-col h-full relative overflow-y-auto">
+    <main class="flex-1 flex flex-col h-screen overflow-hidden relative">
+
         <!-- HEADER -->
-        <header
-            class="bg-white border-b border-slate-200 h-16 flex items-center justify-between px-8 sticky top-0 z-10 shadow-sm">
-            <h2 id="page-title" class="text-xl font-bold text-slate-700">Resumen General</h2>
+        <header class="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6 shadow-sm z-10">
+            <div class="flex items-center">
+                <button class="md:hidden text-gray-500 mr-4"><i class="fas fa-bars text-xl"></i></button>
+                <h1 id="page-title" class="text-xl font-bold text-gray-800">Dashboard General</h1>
+            </div>
             <div class="flex items-center space-x-4">
-                <div class="h-10 w-10 bg-slate-200 rounded-full flex items-center justify-center text-slate-500">
-                    <i class="fa-solid fa-user"></i>
+                <div class="flex items-center bg-gray-100 rounded-md px-3 py-1.5">
+                    <i class="fas fa-filter text-gray-500 mr-2"></i>
+                    <select id="globalMatrixFilter" onchange="applyGlobalFilter()"
+                        class="bg-transparent border-none text-sm text-gray-700 focus:ring-0 p-0 font-medium cursor-pointer">
+                        <option value="TODOS">Todas las Matrices</option>
+                        <!-- Populated by JS -->
+                    </select>
+                </div>
+                <div class="h-8 w-8 rounded-full bg-brand-600 flex items-center justify-center text-white font-bold">
+                    A
                 </div>
             </div>
         </header>
 
-        <!-- VIEWS -->
-        <div class="p-8 flex-1 w-full max-w-7xl mx-auto">
-
-            <!-- LOADER -->
-            <div id="loader" class="hidden fixed inset-0 bg-white/80 z-50 flex items-center justify-center">
-                <div class="flex flex-col items-center">
-                    <i class="fa-solid fa-circle-notch fa-spin text-4xl text-blue-600"></i>
-                    <p class="mt-3 text-slate-600 font-medium">Cargando...</p>
+        <!-- VIEW: DASHBOARD -->
+        <div id="view-dashboard" class="flex-1 overflow-y-auto p-6 space-y-6">
+            <!-- KPI Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between"
+                    id="card-compliance">
+                    <div>
+                        <p class="text-xs font-semibold text-gray-500 uppercase">Cumplimiento</p>
+                        <h3 class="text-2xl font-bold text-gray-800 mt-1">0%</h3>
+                        <span class="text-xs text-green-500 font-medium"><i class="fas fa-arrow-up"></i> +0% vs Mes
+                            Ant.</span>
+                    </div>
+                    <div class="p-3 bg-brand-50 rounded-full text-brand-600"><i class="fas fa-percentage text-xl"></i>
+                    </div>
+                </div>
+                <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between"
+                    id="card-total">
+                    <div>
+                        <p class="text-xs font-semibold text-gray-500 uppercase">Asignaciones Total</p>
+                        <h3 class="text-2xl font-bold text-gray-800 mt-1">0</h3>
+                    </div>
+                    <div class="p-3 bg-blue-50 rounded-full text-blue-600"><i class="fas fa-tasks text-xl"></i></div>
+                </div>
+                <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between"
+                    id="card-pending">
+                    <div>
+                        <p class="text-xs font-semibold text-gray-500 uppercase">Pendientes</p>
+                        <h3 class="text-2xl font-bold text-gray-800 mt-1 text-orange-600">0</h3>
+                    </div>
+                    <div class="p-3 bg-orange-50 rounded-full text-orange-600"><i class="fas fa-clock text-xl"></i>
+                    </div>
+                </div>
+                <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between"
+                    id="card-overdue">
+                    <div>
+                        <p class="text-xs font-semibold text-gray-500 uppercase">Vencidas</p>
+                        <h3 class="text-2xl font-bold text-gray-800 mt-1 text-red-600">0</h3>
+                    </div>
+                    <div class="p-3 bg-red-50 rounded-full text-red-600"><i
+                            class="fas fa-exclamation-triangle text-xl"></i></div>
                 </div>
             </div>
 
-            <!-- VIEW: DASHBOARD -->
-            <section id="view-dashboard" class="space-y-6 animate-fade-in">
-                <!-- KPI GRID -->
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-                    <!-- Card 1: Empleados -->
-                    <div
-                        class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex items-center justify-between">
-                        <div>
-                            <p class="text-xs text-slate-500 uppercase font-bold">Empleados</p>
-                            <h3 class="text-2xl font-bold text-slate-800 mt-1" id="kpi-total">0</h3>
-                        </div>
-                        <div class="h-10 w-10 bg-slate-100 text-slate-600 rounded-lg flex items-center justify-center">
-                            <i class="fa-solid fa-users"></i>
-                        </div>
-                    </div>
-
-                    <!-- Card 2: Cumplimiento -->
-                    <div
-                        class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex items-center justify-between">
-                        <div>
-                            <p class="text-xs text-slate-500 uppercase font-bold">% Cumplimiento</p>
-                            <h3 class="text-2xl font-bold text-blue-600 mt-1"><span id="kpi-compliance">0</span>%</h3>
-                        </div>
-                        <div class="h-10 w-10 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center">
-                            <i class="fa-solid fa-chart-pie"></i>
-                        </div>
-                    </div>
-
-                    <!-- Card 3: Asignaciones -->
-                    <div
-                        class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex items-center justify-between">
-                        <div>
-                            <p class="text-xs text-slate-500 uppercase font-bold">Asignaciones</p>
-                            <h3 class="text-2xl font-bold text-slate-700 mt-1" id="kpi-assignments">0</h3>
-                        </div>
-                        <div class="h-10 w-10 bg-indigo-50 text-indigo-600 rounded-lg flex items-center justify-center">
-                            <i class="fa-solid fa-clipboard-list"></i>
-                        </div>
-                    </div>
-
-                    <!-- Card 4: Pendientes -->
-                    <div
-                        class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex items-center justify-between border-l-4 border-l-amber-400">
-                        <div>
-                            <p class="text-xs text-slate-500 uppercase font-bold">Pendientes</p>
-                            <h3 class="text-2xl font-bold text-amber-600 mt-1" id="kpi-pending">0</h3>
-                        </div>
-                        <div class="h-10 w-10 bg-amber-50 text-amber-600 rounded-lg flex items-center justify-center">
-                            <i class="fa-solid fa-clock"></i>
-                        </div>
-                    </div>
-
-                    <!-- Card 5: Vencidas -->
-                    <div
-                        class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex items-center justify-between border-l-4 border-l-red-500">
-                        <div>
-                            <p class="text-xs text-slate-500 uppercase font-bold">Vencidas</p>
-                            <h3 class="text-2xl font-bold text-red-600 mt-1" id="kpi-overdue">0</h3>
-                        </div>
-                        <div class="h-10 w-10 bg-red-50 text-red-600 rounded-lg flex items-center justify-center">
-                            <i class="fa-solid fa-triangle-exclamation"></i>
-                        </div>
-                    </div>
+            <!-- Charts -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                    <h4 class="font-bold text-gray-700 mb-4">Ejecución Mensual</h4>
+                    <canvas id="chartMonthly" height="200"></canvas>
                 </div>
-
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-                    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
-                        <h3 class="text-lg font-bold text-slate-700 mb-4">Empleados por Nivel</h3>
-                        <canvas id="chart-nivel"></canvas>
-                    </div>
-                    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
-                        <h3 class="text-lg font-bold text-slate-700 mb-4">Distribución por Área</h3>
-                        <canvas id="chart-area"></canvas>
-                    </div>
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                    <h4 class="font-bold text-gray-700 mb-4">Cumplimiento por Jefatura</h4>
+                    <canvas id="chartArea" height="200"></canvas>
                 </div>
-            </section>
-
-            <!-- VIEW: DIRECTORY -->
-            <section id="view-directory" class="hidden space-y-6 animate-fade-in">
-                <div
-                    class="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm border border-slate-100">
-                    <div class="relative w-96">
-                        <i class="fa-solid fa-search absolute left-3 top-3 text-slate-400"></i>
-                        <input type="text" id="dir-search" onkeyup="Directory.filter()"
-                            placeholder="Buscar empleado, cargo o área..."
-                            class="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-200 outline-none">
-                    </div>
-                    <button onclick="Directory.refresh()"
-                        class="text-blue-600 hover:bg-blue-50 px-3 py-2 rounded-lg transition-colors">
-                        <i class="fa-solid fa-sync-alt mr-1"></i> Actualizar
-                    </button>
-                </div>
-
-                <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
-                    <table class="w-full text-left">
-                        <thead class="bg-slate-50 text-xs uppercase text-slate-500 font-bold">
-                            <tr>
-                                <th class="px-6 py-3">Cédula</th>
-                                <th class="px-6 py-3">Nombre</th>
-                                <th class="px-6 py-3">Cargo</th>
-                                <th class="px-6 py-3">Área / Jefatura</th>
-                                <th class="px-6 py-3 text-center">Acción</th>
-                            </tr>
-                        </thead>
-                        <tbody id="dir-table-body" class="divide-y divide-slate-100 text-sm">
-                            <!-- Rows -->
-                        </tbody>
-                    </table>
-                    <div id="dir-empty" class="hidden p-8 text-center text-slate-400">No se encontraron resultados</div>
-                </div>
-            </section>
-
-            <!-- VIEW: TRAININGS (V4.0) -->
-            <section id="view-trainings" class="hidden space-y-6 animate-fade-in">
-                <div
-                    class="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm border border-slate-100">
-                    <div class="relative w-96">
-                        <i class="fa-solid fa-search absolute left-3 top-3 text-slate-400"></i>
-                        <input type="text" id="train-search" onkeyup="Trainings.filter()" placeholder="Buscar tema..."
-                            class="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-200 outline-none">
-                    </div>
-                    <button onclick="Trainings.refresh()"
-                        class="text-blue-600 hover:bg-blue-50 px-3 py-2 rounded-lg transition-colors">
-                        <i class="fa-solid fa-sync-alt mr-1"></i> Actualizar
-                    </button>
-                </div>
-
-                <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
-                    <table class="w-full text-left">
-                        <thead class="bg-slate-50 text-xs uppercase text-slate-500 font-bold">
-                            <tr>
-                                <th class="px-6 py-3">Enfoque</th>
-                                <th class="px-6 py-3">Tema / Formación</th>
-                                <th class="px-6 py-3 text-center text-blue-600"><i class="fa-solid fa-user-check"
-                                        title="Asignadas"></i></th>
-                                <th class="px-6 py-3 text-center text-amber-500"><i class="fa-solid fa-clock"
-                                        title="Pendientes"></i></th>
-                                <th class="px-6 py-3 text-center text-red-500"><i
-                                        class="fa-solid fa-triangle-exclamation" title="Vencidas"></i></th>
-                                <th class="px-6 py-3 text-center">% Cump.</th>
-                                <th class="px-6 py-3 text-center">Acción</th>
-                            </tr>
-                        </thead>
-                        <tbody id="train-table-body" class="divide-y divide-slate-100 text-sm">
-                            <!-- Rows -->
-                        </tbody>
-                    </table>
-                </div>
-            </section>
-
-            <!-- VIEW: SEARCH / INDIVIDUAL -->
-            <section id="view-search" class="hidden space-y-6">
-                <!-- Search Box -->
-                <div class="bg-white p-8 rounded-xl shadow-sm border border-slate-100 text-center max-w-2xl mx-auto">
-                    <h3 class="text-xl font-bold text-slate-700 mb-2">Consulta Individual</h3>
-                    <div class="flex items-center relative mt-4">
-                        <input type="text" id="search-input"
-                            class="w-full px-4 py-3 rounded-lg border-2 border-slate-200 focus:border-blue-500 outline-none text-lg"
-                            placeholder="Cédula o Nombre" onkeydown="if(event.key === 'Enter') performSearch()">
-                        <button onclick="performSearch()"
-                            class="absolute right-2 bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold">Buscar</button>
-                    </div>
-                </div>
-
-                <!-- Results -->
-                <div id="search-results" class="hidden space-y-6">
-                    <div
-                        class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-blue-600 flex justify-between items-center">
-                        <div>
-                            <h2 id="emp-name" class="text-2xl font-bold text-slate-800">Nombre</h2>
-                            <p class="text-slate-500"><span id="emp-cargo" class="text-blue-600 font-bold">Cargo</span>
-                                | <span id="emp-cedula">ID</span></p>
-                        </div>
-                        <button onclick="Modal.open()"
-                            class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg shadow-md transition-colors">
-                            <i class="fa-solid fa-plus-circle mr-2"></i> Asignar Formación
-                        </button>
-                    </div>
-
-                    <div class="bg-white rounded-xl shadow-sm border border-slate-100">
-                        <table class="w-full text-left">
-                            <thead class="bg-slate-50 text-xs uppercase text-slate-500">
-                                <tr>
-                                    <th class="px-6 py-3">Enfoque</th>
-                                    <th class="px-6 py-3">Tema</th>
-                                    <th class="px-6 py-3">Origen</th>
-                                    <th class="px-6 py-3">Estado</th>
-                                </tr>
-                            </thead>
-                            <tbody id="training-list" class="divide-y divide-slate-100 text-sm"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </section>
-
-            <!-- VIEW: CONFIG -->
-            <section id="view-config" class="hidden max-w-lg mx-auto mt-10">
-                <div class="bg-white p-8 rounded-xl shadow-lg border border-slate-100">
-                    <h3 class="text-xl font-bold text-slate-800 mb-6">Configuración</h3>
-
-                    <!-- NEW DIAG SSECTION -->
-                    <div class="p-4 bg-amber-50 border border-amber-200 rounded-lg mb-6">
-                        <h4 class="text-sm font-bold text-amber-800 mb-2"><i class="fa-solid fa-stethoscope mr-2"></i>
-                            Diagnóstico de Problemas</h4>
-                        <p class="text-xs text-amber-700 mb-3">Si no ves datos, haz clic aquí para verificar la conexión
-                            con las hojas.</p>
-                        <button onclick="API.diagnose()"
-                            class="w-full bg-amber-600 hover:bg-amber-700 text-white py-2 rounded font-bold text-sm transition-colors">
-                            Probar Conexión
-                        </button>
-                        <pre id="diag-output"
-                            class="hidden mt-3 p-3 bg-slate-800 text-green-400 font-mono text-xs rounded overflow-x-auto whitespace-pre-wrap"></pre>
-                    </div>
-
-                    <div class="space-y-4">
-                        <label class="block text-sm font-semibold text-slate-700">ID Spreadsheet</label>
-                        <input type="text" id="config-sheet-id"
-                            class="w-full px-4 py-2 border rounded-lg text-sm font-mono">
-                        <button onclick="saveConfig()"
-                            class="w-full bg-slate-800 text-white py-2 rounded-lg">Guardar</button>
-                    </div>
-                </div>
-            </section>
-
+            </div>
         </div>
+
+        <!-- VIEW: KARDEX (DIRECTORY) -->
+        <div id="view-kardex" class="hidden flex-1 p-6 overflow-hidden flex flex-col">
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 flex-1 flex flex-col overflow-hidden">
+
+                <!-- Filters Header -->
+                <div class="p-5 border-b border-gray-200 bg-gray-50 space-y-4">
+                    <div class="flex justify-between items-center">
+                        <h3 class="font-bold text-lg text-gray-700">Directorio de Colaboradores</h3>
+                        <span id="employee-count"
+                            class="bg-brand-50 text-brand-600 text-xs font-bold px-2.5 py-0.5 rounded-full">0
+                            Colaboradores</span>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <!-- Search -->
+                        <div class="relative col-span-2">
+                            <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                                <i class="fas fa-search text-gray-400"></i>
+                            </div>
+                            <input type="text" id="dirSearch" onkeyup="filterDirectory()"
+                                class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-brand-500 focus:border-brand-500 block w-full pl-10 p-2.5"
+                                placeholder="Buscar por Nombre o Cédula...">
+                        </div>
+
+                        <!-- Filters -->
+                        <select id="dirFilterArea" onchange="filterDirectory()"
+                            class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-brand-500 focus:border-brand-500 p-2.5">
+                            <option value="">Todas las Jefaturas</option>
+                        </select>
+
+                        <select id="dirFilterCargo" onchange="filterDirectory()"
+                            class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-brand-500 focus:border-brand-500 p-2.5">
+                            <option value="">Todos los Cargos</option>
+                        </select>
+
+                        <select id="dirSort" onchange="filterDirectory()"
+                            class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-brand-500 focus:border-brand-500 p-2.5">
+                            <option value="asc">Nombre (A-Z)</option>
+                            <option value="desc">Nombre (Z-A)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Table -->
+                <div class="flex-1 overflow-auto">
+                    <table class="w-full text-sm text-left text-gray-500">
+                        <thead class="text-xs text-gray-700 uppercase bg-gray-100 sticky top-0">
+                            <tr>
+                                <th scope="col" class="px-6 py-3">Colaborador</th>
+                                <th scope="col" class="px-6 py-3">Jefatura / Área</th>
+                                <th scope="col" class="px-6 py-3">Cargo</th>
+                                <th scope="col" class="px-6 py-3 text-right">Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody id="directory-table-body" class="divide-y divide-gray-200">
+                            <!-- Rows by JS -->
+                        </tbody>
+                    </table>
+
+                    <!-- Loading State -->
+                    <div id="dir-loading" class="hidden flex flex-col items-center justify-center h-48 text-gray-400">
+                        <i class="fas fa-spinner fa-spin text-3xl mb-3"></i>
+                        <p>Cargando directorio...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </main>
 
-    <!-- MODAL TOPIC DETAILS (V4.2) -->
-    <div id="modal-details"
-        class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
-        <div class="bg-white rounded-xl shadow-2xl w-full max-w-3xl overflow-hidden flex flex-col max-h-[90vh]">
-            <div class="bg-slate-50 px-6 py-4 border-b border-slate-100 flex justify-between items-center shrink-0">
-                <div>
-                    <h3 class="font-bold text-slate-700">Detalle de Participantes</h3>
-                    <p class="text-xs text-slate-500" id="detail-subtitle">Cargando...</p>
-                </div>
-                <button onclick="document.getElementById('modal-details').classList.add('hidden')"
-                    class="text-slate-400 hover:text-red-500"><i class="fa-solid fa-times text-xl"></i></button>
-            </div>
-
-            <div class="p-0 overflow-y-auto">
-                <table class="w-full text-left border-collapse">
-                    <thead class="bg-slate-50 text-xs uppercase text-slate-500 sticky top-0 border-b">
-                        <tr>
-                            <th class="px-6 py-3">Empleado</th>
-                            <th class="px-6 py-3">Cargo</th>
-                            <th class="px-6 py-3 text-center">Estado</th>
-                        </tr>
-                    </thead>
-                    <tbody id="detail-list" class="divide-y divide-slate-100 text-sm"></tbody>
-                </table>
-                <div id="detail-empty" class="hidden p-8 text-center text-slate-400">
-                    <i class="fa-solid fa-users-slash text-4xl mb-2"></i>
-                    <p>No hay participantes activos o asignados en este tema.</p>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL BULK ASSIGNMENT (V4.0) -->
-    <div id="modal-bulk"
-        class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
-        <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]">
-            <div class="bg-slate-50 px-6 py-4 border-b border-slate-100 flex justify-between items-center shrink-0">
-                <h3 class="font-bold text-slate-700">Programar Formación</h3>
-                <button onclick="BulkModal.close()" class="text-slate-400 hover:text-red-500"><i
-                        class="fa-solid fa-times text-xl"></i></button>
-            </div>
-
-            <div class="p-6 overflow-y-auto space-y-6">
-
-                <!-- Info Tema -->
-                <div class="bg-blue-50 p-4 rounded-lg border border-blue-100">
-                    <p class="text-xs font-bold text-blue-500 uppercase">Tema Seleccionado</p>
-                    <h2 id="bulk-tema-display" class="text-lg font-bold text-blue-900 mt-1">Liderazgo Efectivo</h2>
-                </div>
-
-                <!-- Fechas y Link -->
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Fecha Inicio</label>
-                        <input type="date" id="bulk-start" class="w-full border rounded-lg px-3 py-2 text-sm">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Fecha Fin</label>
-                        <input type="date" id="bulk-end" class="w-full border rounded-lg px-3 py-2 text-sm">
-                    </div>
-                    <div class="col-span-2">
-                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Link / Ubicación <span
-                                class="text-slate-300 font-normal">(Opcional)</span></label>
-                        <input type="text" id="bulk-link" class="w-full border rounded-lg px-3 py-2 text-sm"
-                            placeholder="https://meet.google.com/...">
-                    </div>
-                </div>
-
-                <!-- Selector de Personas -->
-                <div class="border-t pt-4">
-                    <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Asignar a Empleados</label>
-
-                    <!-- Buscador Empleados -->
-                    <div class="relative mb-3">
-                        <i class="fa-solid fa-search absolute left-3 top-2.5 text-slate-400 text-sm"></i>
-                        <input type="text" id="bulk-emp-search" onkeyup="BulkModal.filterEmployees()"
-                            placeholder="Buscar por nombre o cédula..."
-                            class="w-full pl-9 pr-4 py-2 border rounded-lg text-sm outline-none focus:border-blue-500">
-                    </div>
-
-                    <!-- Lista de Selección -->
-                    <div class="border rounded-lg h-48 overflow-y-auto p-2 space-y-1 bg-slate-50" id="bulk-emp-list">
-                        <!-- Items generados dinámicamente -->
-                    </div>
-
-                    <div class="flex justify-between items-center mt-2 text-sm">
-                        <span class="text-slate-500"><span id="bulk-count" class="font-bold text-slate-800">0</span>
-                            seleccionados</span>
-                        <button onclick="BulkModal.selectAll()"
-                            class="text-blue-600 font-bold hover:underline">Seleccionar Todos</button>
-                    </div>
-                </div>
-
-            </div>
-
-            <div class="p-6 border-t bg-slate-50 shrink-0">
-                <button onclick="BulkModal.submit()"
-                    class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-bold shadow-lg transition-all">
-                    Confirmar Asignación
+    <!-- VIEW: TRAININGS (FORMACIONES) -->
+    <div id="view-trainings"
+        class="hidden flex-1 p-6 overflow-hidden flex flex-col bg-gray-50 absolute inset-0 z-0 ml-64 mt-16">
+        <!-- Adjusted classes to match main content area if needed, but since it's toggled, standard flex-1 logic works better if inside main. 
+             Wait, the original structure has views INSIDE <main>.
+             Let's check line 206. It is </main>.
+             So I should insert BEFORE </main>.
+        -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 flex-1 flex flex-col overflow-hidden h-full">
+            <div class="p-5 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
+                <h3 class="font-bold text-lg text-gray-700">Catálogo de Formaciones</h3>
+                <button onclick="saveTrainingDates()"
+                    class="text-white bg-green-600 hover:bg-green-700 font-medium rounded-lg text-sm px-5 py-2.5 shadow-sm transition-all hover:scale-105">
+                    <i class="fas fa-save mr-2"></i>Guardar Fechas
                 </button>
             </div>
+
+            <div class="flex-1 overflow-auto">
+                <table class="w-full text-sm text-left text-gray-500">
+                    <thead class="text-xs text-gray-700 uppercase bg-gray-100 sticky top-0 z-10">
+                        <tr>
+                            <th scope="col" class="px-6 py-3">Matriz</th>
+                            <th scope="col" class="px-6 py-3">Enfoque</th>
+                            <th scope="col" class="px-6 py-3">Tema</th>
+                            <th scope="col" class="px-6 py-3">Eje SIG</th>
+                            <th scope="col" class="px-6 py-3">Población</th>
+                            <th scope="col" class="px-6 py-3">Fecha Inicio</th>
+                            <th scope="col" class="px-6 py-3">Fecha Fin</th>
+                        </tr>
+                    </thead>
+                    <tbody id="trainings-table-body" class="divide-y divide-gray-200">
+                        <!-- Rows by JS -->
+                    </tbody>
+                </table>
+                <div id="trainings-loading" class="hidden flex flex-col items-center justify-center h-48 text-gray-400">
+                    <i class="fas fa-spinner fa-spin text-3xl mb-3"></i>
+                    <p>Cargando formaciones...</p>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- MODAL ASSIGNMENT -->
-    <div id="modal-assign"
-        class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
-        <div class="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all scale-100">
-            <div class="bg-slate-50 px-6 py-4 border-b border-slate-100 flex justify-between items-center">
-                <h3 class="font-bold text-slate-700">Asignar Formación Manual</h3>
-                <button onclick="Modal.close()" class="text-slate-400 hover:text-red-500"><i
-                        class="fa-solid fa-times text-xl"></i></button>
+    </main>
+
+    <!-- MODAL: EMPLOYEE DETAIL (Full Screen Overlay) -->
+    <div id="modal-employee-detail"
+        class="hidden fixed inset-0 bg-gray-900 bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div
+            class="bg-white w-full max-w-6xl h-[90vh] rounded-xl shadow-2xl flex flex-col overflow-hidden animate-fade-in-up">
+
+            <!-- Modal Header -->
+            <div class="bg-slate-800 text-white p-6 flex justify-between items-start">
+                <div>
+                    <div class="flex items-center gap-3">
+                        <h2 class="text-2xl font-bold" id="modal-emp-name">Juan Pérez</h2>
+                        <span class="bg-blue-600 text-xs px-2 py-1 rounded uppercase font-bold"
+                            id="modal-emp-area">Operaciones</span>
+                    </div>
+                    <p class="text-slate-400 mt-1 text-sm"><i class="far fa-id-card mr-1"></i> <span
+                            id="modal-emp-cedula">12345678</span> &bull; <span id="modal-emp-job">Analista</span></p>
+                </div>
+                <button onclick="closeModal()" class="text-slate-400 hover:text-white transition-colors">
+                    <i class="fas fa-times text-2xl"></i>
+                </button>
             </div>
-            <div class="p-6 space-y-4">
-                <input type="hidden" id="assign-cedula">
-                <div>
-                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Nombre Empleado</label>
-                    <p id="assign-name-display"
-                        class="text-sm font-medium text-slate-800 bg-slate-100 px-3 py-2 rounded">Juan Perez</p>
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Tema / Formación</label>
-                    <input type="text" id="assign-tema"
-                        class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
-                        placeholder="Ej: Curso Avanzado Excel">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Estado Inicial</label>
-                    <select id="assign-estado" class="w-full border rounded-lg px-3 py-2 text-sm">
-                        <option value="PENDIENTE">PENDIENTE</option>
-                        <option value="COMPLETADO">COMPLETADO</option>
-                        <option value="EN CURSO">EN CURSO</option>
+
+            <!-- Modal Toolbar -->
+            <div class="bg-gray-50 border-b border-gray-200 p-4 flex justify-between items-center">
+                <div class="flex items-center gap-4">
+                    <select id="modalMatrixFilter" onchange="renderKardexGrid()"
+                        class="bg-white border text-sm rounded-lg p-2.5 w-64 shadow-sm">
+                        <option value="TODOS">Todas las Matrices</option>
+                        <!-- Populated dynamic -->
                     </select>
+                    <label class="flex items-center gap-2 cursor-pointer select-none">
+                        <input type="checkbox" id="chkSelectAll" onchange="toggleSelectAll(this)"
+                            class="w-4 h-4 text-brand-600 rounded focus:ring-brand-500">
+                        <span class="text-sm font-medium text-gray-700">Seleccionar Todo</span>
+                    </label>
                 </div>
-                <div class="pt-2">
-                    <button onclick="Modal.submit()"
-                        class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg font-bold shadow-lg shadow-blue-200 transition-all">
-                        Confirmar Asignación
+                <div class="flex gap-2">
+                    <button onclick="applyBulkAssign()"
+                        class="text-gray-700 bg-white border border-gray-300 hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 font-medium rounded-lg text-sm px-5 py-2.5">
+                        <i class="fas fa-check-double mr-2"></i>Asignar Seleccionados
+                    </button>
+                    <button onclick="saveChanges()"
+                        class="text-white bg-green-600 hover:bg-green-700 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 shadow-sm transition-all hover:scale-105">
+                        <i class="fas fa-save mr-2"></i>Guardar Cambios
                     </button>
                 </div>
             </div>
+
+            <!-- Modal Content (Grid) -->
+            <div class="flex-1 overflow-auto p-0">
+                <table class="w-full text-sm text-left text-gray-500">
+                    <thead class="text-xs text-gray-700 uppercase bg-gray-100 sticky top-0 z-10">
+                        <tr>
+                            <th scope="col" class="p-4 w-4">
+                                <span class="sr-only">Select</span>
+                            </th>
+                            <th scope="col" class="px-6 py-3 w-1/4">Enfoque</th>
+                            <th scope="col" class="px-6 py-3">Tema</th>
+                            <th scope="col" class="px-6 py-3">Matriz</th>
+                            <th scope="col" class="px-6 py-3">Estado</th>
+                            <th scope="col" class="px-6 py-3">Fechas (Inicio - Fin)</th>
+                            <th scope="col" class="px-6 py-3 text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="kardex-table-body" class="divide-y divide-gray-200">
+                        <!-- Filled by JS -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Loading Overlay within Modal -->
+            <div id="modal-loading"
+                class="hidden absolute inset-0 bg-white bg-opacity-80 flex items-center justify-center z-20">
+                <div class="text-center">
+                    <i class="fas fa-spinner fa-spin text-4xl text-brand-600 mb-3"></i>
+                    <p class="font-medium text-gray-600">Procesando...</p>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- LOGIC -->
+    <!-- TOAST NOTIFICATION -->
+    <div id="toast"
+        class="fixed bottom-5 right-5 transform translate-y-20 transition-transform duration-300 z-50 flex items-center w-full max-w-xs p-4 text-gray-500 bg-white rounded-lg shadow dark:text-gray-400 dark:bg-gray-800"
+        role="alert">
+        <div id="toast-icon"
+            class="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 text-green-500 bg-green-100 rounded-lg dark:bg-green-800 dark:text-green-200">
+            <i class="fas fa-check"></i>
+        </div>
+        <div id="toast-message" class="ml-3 text-sm font-normal">Cambios guardados correctamente.</div>
+    </div>
+
+    <!-- JAVASCRIPT -->
     <script>
-        // ROUTER
-        const Router = {
-            navigate: function (viewId) {
-                document.querySelectorAll('section').forEach(el => el.classList.add('hidden'));
-                document.getElementById(`view-${viewId}`).classList.remove('hidden');
+        // GLOBAL STATE
+        let CURRENT_EMPLOYEE_DATA = null;
+        let CURRENT_KARDEX = []; // Local copy of rows
+        let PENDING_CHANGES = []; // Change log
+        let GLOBAL_MATRIZ_FILTER = "TODOS";
 
-                document.querySelectorAll('.nav-item').forEach(el => {
-                    const isActive = el.getAttribute('onclick').includes(viewId);
-                    el.className = isActive
-                        ? 'nav-item flex items-center space-x-3 px-4 py-3 rounded-lg bg-blue-600 text-white transition-all shadow-md'
-                        : 'nav-item flex items-center space-x-3 px-4 py-3 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition-colors';
-                });
+        let FULL_DIRECTORY = []; // Full list
+        let DIRECTORY_LOADED = false;
+        let CURRENT_CEDULA_OPENED = "";
 
-                if (viewId === 'dashboard') API.getStats();
-                if (viewId === 'directory') Directory.load();
-                if (viewId === 'trainings') Trainings.load();
-            }
-        };
+        // --- CHARTS ---------------------------------
+        let CHART_MONTHLY = null;
+        let CHART_AREA = null;
 
-        // API
-        const API = {
-            getStats: () => {
-                UI.loader(true);
-                google.script.run.withSuccessHandler(UI.renderStats).getDashboardStats();
-            },
-            searchEmployee: (term) => {
-                UI.loader(true);
-                google.script.run.withSuccessHandler(UI.renderEmployee).searchEmployee(term);
-            },
-            getDirectory: () => {
-                UI.loader(true);
-                google.script.run.withSuccessHandler(Directory.render).getAllEmployees();
-            },
-            getTrainingCatalog: () => {
-                UI.loader(true);
-                google.script.run.withSuccessHandler(Trainings.render).getTrainingCatalog();
-            },
-            getTrainingDetails: (tema) => {
-                UI.loader(true);
-                google.script.run.withSuccessHandler(TopicDetails.render).getTrainingDetails(tema);
-            },
-            assignTrainingMask: (cedulas, tema, start, end, link) => {
-                UI.loader(true);
-                google.script.run
-                    .withSuccessHandler((msg) => {
-                        alert(msg);
-                        BulkModal.close();
-                        UI.loader(false);
-                    })
-                    .withFailureHandler(err => {
-                        alert("Error: " + err);
-                        UI.loader(false);
-                    })
-                    .assignTrainingBulk(cedulas, tema, start, end, link, 'PENDIENTE');
-            },
-            // Legacy wrapper
-            assignTraining: (cedula, tema, estado) => {
-                API.assignTrainingMask([cedula], tema, '', '', '');
-            },
-            saveConfig: (id) => {
-                google.script.run.setConfig(id);
-                alert("Guardado");
-            },
-            diagnose: () => {
-                UI.loader(true);
-                const out = document.getElementById('diag-output');
-                out.classList.remove('hidden');
-                out.innerText = "Ejecutando diagnóstico...";
+        function initCharts() {
+            // Initialize empty charts
+            const ctx1 = document.getElementById('chartMonthly').getContext('2d');
+            CHART_MONTHLY = new Chart(ctx1, {
+                type: 'line',
+                data: {
+                    labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'],
+                    datasets: [{
+                        label: 'Finalizados',
+                        data: [],
+                        borderColor: '#0284c7',
+                        tension: 0.4
+                    }]
+                },
+                options: { responsive: true, plugins: { legend: { display: false } } }
+            });
 
-                google.script.run
-                    .withSuccessHandler((text) => {
-                        UI.loader(false);
-                        out.innerText = text;
-                    })
-                    .withFailureHandler((err) => {
-                        UI.loader(false);
-                        out.innerText = "Error ejecutando diagnóstico: " + err;
-                    })
-                    .diagnoseConnection();
-            }
-        };
-
-        // TRAININGS CONTROLLER (V4)
-        const Trainings = {
-            data: [],
-            load: () => {
-                if (Trainings.data.length === 0) API.getTrainingCatalog();
-                else Trainings.render(JSON.stringify(Trainings.data));
-            },
-            refresh: () => API.getTrainingCatalog(),
-            render: (json) => {
-                UI.loader(false);
-                const list = typeof json === 'string' ? JSON.parse(json) : json;
-                // Unique filter just in case
-                const unique = [];
-                const seen = new Set();
-                list.forEach(item => {
-                    if (!seen.has(item.tema)) {
-                        seen.add(item.tema);
-                        unique.push(item);
-                    }
-                });
-
-                Trainings.data = unique.sort((a, b) => a.enfoque.localeCompare(b.enfoque));
-                Trainings.filter();
-            },
-            filter: () => {
-                const term = document.getElementById('train-search').value.toLowerCase();
-                const tbody = document.getElementById('train-table-body');
-                tbody.innerHTML = '';
-
-                const filtered = Trainings.data.filter(t => t.tema.toLowerCase().includes(term));
-
-                filtered.forEach(t => {
-                    // Sanitize for inline HTML attribute: Escape quotes and newlines
-                    const safeTema = t.tema.replace(/'/g, "\\\\'").replace(/"/g, "&quot;").replace(/\n/g, " ");
-                    const s = t.stats || { asignada: 0, pendiente: 0, vencida: 0, cumplimiento: 0 };
-
-                    const tr = document.createElement('tr');
-                    tr.className = "hover:bg-slate-50 transition-colors border-b border-slate-50";
-                    tr.innerHTML = `
-                         <td class="px-6 py-4 font-bold text-slate-500 text-xs uppercase">${t.enfoque}</td>
-                         <td class="px-6 py-4 font-medium text-slate-800">
-                            <button onclick="TopicDetails.open('${safeTema}')" class="hover:text-blue-600 hover:underline text-left">
-                                ${t.tema}
-                            </button>
-                         </td>
-                         
-                         <!-- COLS: ASIG | PEND | VENC | % -->
-                         <td class="px-6 py-4 text-center font-bold text-blue-700">${s.asignada}</td>
-                         <td class="px-6 py-4 text-center font-bold text-amber-600">${s.pendiente}</td>
-                         <td class="px-6 py-4 text-center font-bold text-red-600">${s.vencida}</td>
-                         <td class="px-6 py-4 text-center">
-                            <div class="flex items-center justify-center space-x-2">
-                                <span class="text-xs font-bold text-slate-700">${s.cumplimiento}%</span>
-                                <div class="w-10 bg-slate-200 rounded-full h-1.5">
-                                    <div class="bg-green-500 h-1.5 rounded-full" style="width: ${s.cumplimiento}%"></div>
-                                </div>
-                            </div>
-                         </td>
-
-                         <td class="px-6 py-4 text-center">
-                             <button onclick="BulkModal.open('${safeTema}')" 
-                                class="bg-blue-100 text-blue-700 hover:bg-blue-200 px-3 py-1 rounded text-xs font-bold transition-colors">
-                                Programar
-                             </button>
-                         </td>
-                    `;
-                    tbody.appendChild(tr);
-                });
-            }
-        };
-
-        const TopicDetails = {
-            currentTema: '',
-            open: (tema) => {
-                TopicDetails.currentTema = tema;
-                document.getElementById('detail-subtitle').innerText = tema;
-                document.getElementById('detail-list').innerHTML = ''; // Clear
-                document.getElementById('detail-empty').classList.add('hidden');
-                document.getElementById('modal-details').classList.remove('hidden');
-                API.getTrainingDetails(tema);
-            },
-            render: (json) => {
-                UI.loader(false);
-                const list = JSON.parse(json);
-                const tbody = document.getElementById('detail-list');
-                tbody.innerHTML = '';
-
-                if (list.length === 0) {
-                    document.getElementById('detail-empty').classList.remove('hidden');
-                    return;
+            const ctx2 = document.getElementById('chartArea').getContext('2d');
+            CHART_AREA = new Chart(ctx2, {
+                type: 'bar',
+                data: {
+                    labels: ['Oper.', 'Admin', 'Ventas', 'IT', 'RRHH'],
+                    datasets: [{
+                        label: '% Cumplimiento',
+                        data: [],
+                        backgroundColor: '#0ea5e9',
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true, max: 100 } }
                 }
+            });
 
-                list.forEach(item => {
-                    const statusColors = {
-                        'ASIGNADO': 'bg-blue-100 text-blue-800',
-                        'EN CURSO': 'bg-blue-100 text-blue-800', // Mismo color para active
-                        'VENCIDO': 'bg-red-100 text-red-800',
-                        'COMPLETADO': 'bg-green-100 text-green-800'
-                    };
-                    const badge = statusColors[item.estado] || 'bg-slate-100 text-slate-800';
+            // Load initial Data
+            applyGlobalFilter();
+        }
 
-                    const tr = document.createElement('tr');
-                    tr.className = "border-b border-slate-50 hover:bg-slate-50";
-                    tr.innerHTML = `
-                         <td class="px-6 py-3">
-                            <p class="font-bold text-slate-700">${item.nombre}</p>
-                            <p class="text-xs text-slate-400">${item.cedula}</p>
-                         </td>
-                         <td class="px-6 py-3 text-xs text-slate-500 uppercase">${item.cargo}</td>
-                         <td class="px-6 py-3 text-center">
-                            <span class="px-2 py-1 rounded text-xs font-bold ${badge}">${item.estado}</span>
-                         </td>
-                    `;
-                    tbody.appendChild(tr);
-                });
+        function applyGlobalFilter() {
+            const filter = document.getElementById('globalMatrixFilter').value;
+            // Show some loading state if desired, e.g. opacity
+            document.getElementById('view-dashboard').style.opacity = "0.5";
+
+            google.script.run
+                .withSuccessHandler(stats => {
+                    document.getElementById('view-dashboard').style.opacity = "1";
+                    if (stats.error) return; // Handle empty db
+                    updateDashboardUI(stats);
+                })
+                .withFailureHandler(err => {
+                    document.getElementById('view-dashboard').style.opacity = "1";
+                    console.error(err);
+                })
+                .getDashboardStats(filter);
+        }
+
+        function updateDashboardUI(stats) {
+            // KPI Cards
+            document.querySelector('#card-compliance h3').textContent = stats.compliance + "%";
+            document.querySelector('#card-total h3').textContent = stats.total;
+            document.querySelector('#card-pending h3').textContent = stats.pending;
+            document.querySelector('#card-overdue h3').textContent = stats.overdue;
+
+            // Update Charts (Mock data update for demo as backend doesn't return arrays yet, but infrastructure is here)
+            // In V2: Backend returns exact arrays.
+            // For now, let's just Randomize based on total to show "Movement"
+            if (CHART_MONTHLY) {
+                CHART_MONTHLY.data.datasets[0].data = stats.monthly || [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+                CHART_MONTHLY.update();
             }
-        };
+        }
 
-        // BULK MODAL CONTROLLER (V4)
-        const BulkModal = {
-            employees: [], // Cache of employees for selection
-            selected: new Set(),
-            currentTema: '',
+        // INIT
+        window.addEventListener('DOMContentLoaded', () => {
+            loadGlobalFilters();
+            initCharts();
+        });
 
-            open: (tema) => {
-                BulkModal.currentTema = tema;
-                document.getElementById('bulk-tema-display').innerText = tema;
-                document.getElementById('bulk-start').value = '';
-                document.getElementById('bulk-end').value = '';
-                document.getElementById('bulk-link').value = '';
-                document.getElementById('bulk-count').innerText = '0';
-                BulkModal.selected.clear();
-                document.getElementById('modal-bulk').classList.remove('hidden');
+        function showView(viewId) {
+            // View Toggling
+            document.getElementById('view-dashboard').classList.add('hidden');
+            document.getElementById('view-kardex').classList.add('hidden');
+            const viewTrainings = document.getElementById('view-trainings');
+            if (viewTrainings) viewTrainings.classList.add('hidden'); // Safety check
 
-                // Load employees if not loaded
-                if (Directory.data.length === 0) {
-                    UI.loader(true);
-                    google.script.run.withSuccessHandler((json) => {
-                        UI.loader(false);
-                        Directory.data = JSON.parse(json); // Sync with Directory cache
-                        BulkModal.employees = Directory.data;
-                        BulkModal.renderEmployees();
-                    }).getAllEmployees();
-                } else {
-                    BulkModal.employees = Directory.data;
-                    BulkModal.renderEmployees();
-                }
-            },
-            close: () => document.getElementById('modal-bulk').classList.add('hidden'),
+            document.getElementById('view-' + viewId).classList.remove('hidden');
 
-            renderEmployees: () => {
-                const container = document.getElementById('bulk-emp-list');
-                container.innerHTML = '';
-                const term = document.getElementById('bulk-emp-search').value.toLowerCase();
+            // Sidebar Toggling
+            const navDash = document.getElementById('nav-dashboard');
+            const navKardex = document.getElementById('nav-kardex');
+            const navTrainings = document.getElementById('nav-trainings');
 
-                const filtered = BulkModal.employees.filter(e =>
-                    e.nombre.toLowerCase().includes(term) || e.cedula.includes(term)
-                );
+            // Reset classes
+            const activeClass = "bg-brand-600 text-white hover:bg-brand-500";
+            const inactiveClass = "text-slate-300 hover:bg-slate-800 hover:text-white";
+            const baseClass = "flex items-center px-4 py-3 rounded-lg transition-colors group ";
 
-                // Limit render for performance
-                filtered.slice(0, 50).forEach(e => {
-                    const isSelected = BulkModal.selected.has(e.cedula);
-                    const el = document.createElement('div');
-                    el.className = `p-2 rounded cursor-pointer flex justify-between items-center text-sm ${isSelected ? 'bg-blue-100 border-blue-200' : 'hover:bg-slate-100'}`;
-                    el.onclick = () => BulkModal.toggle(e.cedula);
-                    el.innerHTML = `
-                        <div>
-                            <span class="font-bold text-slate-700 block">${e.nombre}</span>
-                            <span class="text-xs text-slate-500">${e.cargo}</span>
+            navDash.className = baseClass + inactiveClass;
+            navKardex.className = baseClass + inactiveClass;
+            if (navTrainings) navTrainings.className = baseClass + inactiveClass;
+
+            if (viewId === 'dashboard') {
+                navDash.className = baseClass + activeClass;
+                document.getElementById('page-title').textContent = 'Dashboard General';
+            } else if (viewId === 'kardex') {
+                navKardex.className = baseClass + activeClass;
+                document.getElementById('page-title').textContent = 'Directorio de Colaboradores';
+                if (!DIRECTORY_LOADED) loadDirectory();
+            } else if (viewId === 'trainings') {
+                if (navTrainings) navTrainings.className = baseClass + activeClass;
+                document.getElementById('page-title').textContent = 'Catálogo de Formaciones';
+                if (!TRAININGS_LOADED) loadTrainingCatalog();
+            }
+        }
+
+        // --- BACKEND CALLS ---------------------------------
+
+        let FULL_TRAININGS = [];
+        let TRAININGS_LOADED = false;
+
+        function loadTrainingCatalog() {
+            document.getElementById('trainings-table-body').innerHTML = '';
+            document.getElementById('trainings-loading').classList.remove('hidden');
+
+            google.script.run
+                .withSuccessHandler(onTrainingsLoaded)
+                .withFailureHandler(err => {
+                    document.getElementById('trainings-loading').classList.add('hidden');
+                    showToast("Error cargando formaciones: " + err, "error");
+                })
+                .getTrainingCatalog();
+        }
+
+        function onTrainingsLoaded(list) {
+            document.getElementById('trainings-loading').classList.add('hidden');
+            FULL_TRAININGS = list;
+            TRAININGS_LOADED = true;
+            renderTrainingCatalog(FULL_TRAININGS);
+        }
+
+        function renderTrainingCatalog(list) {
+            const tbody = document.getElementById('trainings-table-body');
+            tbody.innerHTML = '';
+
+            list.forEach((item, index) => {
+                const tr = document.createElement('tr');
+                tr.className = "bg-white border-b hover:bg-gray-50 transition-colors";
+                tr.innerHTML = `
+                    <td class="px-6 py-4 font-medium text-gray-900">${item.matriz}</td>
+                    <td class="px-6 py-4">${item.enfoque}</td>
+                    <td class="px-6 py-4">${item.tema}</td>
+                    <td class="px-6 py-4">${item.eje || '-'}</td>
+                    <td class="px-6 py-4 text-xs max-w-xs truncate" title="${item.poblacion}">${item.poblacion}</td>
+                    <td class="px-6 py-4">
+                        <input type="date" value="${item.startDate}" onchange="updateTrainingDate(${index}, 'startDate', this.value)" class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg block w-32 p-1">
+                    </td>
+                    <td class="px-6 py-4">
+                        <input type="date" value="${item.endDate}" onchange="updateTrainingDate(${index}, 'endDate', this.value)" class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg block w-32 p-1">
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function updateTrainingDate(index, field, value) {
+            FULL_TRAININGS[index][field] = value;
+            FULL_TRAININGS[index]._dirty = true;
+        }
+
+        function saveTrainingDates() {
+            const changes = FULL_TRAININGS.filter(t => t._dirty).map(t => ({
+                row: t.row,
+                startDate: t.startDate,
+                endDate: t.endDate
+            }));
+
+            if (changes.length === 0) return showToast("No hay cambios en fechas.", "info");
+
+            showToast("Guardando fechas...", "info");
+            google.script.run
+                .withSuccessHandler(() => {
+                    showToast("Fechas actualizadas correctamente.");
+                    FULL_TRAININGS.forEach(t => t._dirty = false);
+                })
+                .withFailureHandler(err => showToast("Error al guardar: " + err, "error"))
+                .saveTrainingCatalog(changes);
+        }
+
+        // --- BACKEND CALLS ---------------------------------
+
+        function loadDirectory() {
+            document.getElementById('directory-table-body').innerHTML = '';
+            document.getElementById('dir-loading').classList.remove('hidden');
+
+            google.script.run
+                .withSuccessHandler(onDirectoryLoaded)
+                .withFailureHandler(err => showToast("Error cargando directorio: " + err, "error"))
+                .getEmployeeList();
+        }
+
+        function onDirectoryLoaded(response) {
+            document.getElementById('dir-loading').classList.add('hidden');
+            if (response.error) return showToast(response.error, "error");
+
+            FULL_DIRECTORY = response.list;
+            DIRECTORY_LOADED = true;
+
+            // Populate Filters
+            populateSelect('dirFilterArea', response.filters.jefaturas);
+            populateSelect('dirFilterCargo', response.filters.cargos);
+
+            document.getElementById('employee-count').textContent = FULL_DIRECTORY.length + " Colaboradores";
+
+            renderDirectory(FULL_DIRECTORY);
+        }
+
+        function populateSelect(id, items) {
+            const sel = document.getElementById(id);
+            // keep first
+            sel.innerHTML = sel.innerHTML.split('</option>')[0] + '</option>';
+            items.forEach(i => {
+                const opt = document.createElement('option');
+                opt.value = i;
+                opt.textContent = i;
+                sel.appendChild(opt);
+            });
+        }
+
+        function filterDirectory() {
+            const search = document.getElementById('dirSearch').value.toLowerCase();
+            const area = document.getElementById('dirFilterArea').value;
+            const cargo = document.getElementById('dirFilterCargo').value;
+            const sort = document.getElementById('dirSort').value;
+
+            let filtered = FULL_DIRECTORY.filter(emp => {
+                const matchSearch = !search || String(emp.nombre).toLowerCase().includes(search) || String(emp.cedula).includes(search);
+                const matchArea = !area || emp.jefatura === area;
+                const matchCargo = !cargo || emp.cargo === cargo;
+                return matchSearch && matchArea && matchCargo;
+            });
+
+            // Sorting
+            filtered.sort((a, b) => {
+                const nameA = a.nombre.toLowerCase();
+                const nameB = b.nombre.toLowerCase();
+                if (sort === 'asc') return nameA.localeCompare(nameB);
+                return nameB.localeCompare(nameA);
+            });
+
+            renderDirectory(filtered);
+        }
+
+        function renderDirectory(list) {
+            const tbody = document.getElementById('directory-table-body');
+            tbody.innerHTML = '';
+
+            // Limit render for performance if necessary, but 500 should be fine. 
+            // Let's cap at 100 for DOM perf if list is huge
+            const displayList = list.slice(0, 100);
+
+            displayList.forEach(emp => {
+                const tr = document.createElement('tr');
+                tr.className = "bg-white border-b hover:bg-gray-50 transition-colors";
+                tr.innerHTML = `
+                    <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
+                        <div class="text-base font-semibold">${emp.nombre}</div>
+                        <div class="font-normal text-gray-500">${emp.cedula}</div>
+                    </th>
+                    <td class="px-6 py-4">
+                        ${emp.jefatura}
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="flex items-center">
+                            <div class="h-2.5 w-2.5 rounded-full bg-green-500 mr-2"></div> ${emp.cargo}
                         </div>
-                        ${isSelected ? '<i class="fa-solid fa-check-circle text-blue-600"></i>' : '<i class="fa-regular fa-circle text-slate-300"></i>'}
-                     `;
-                    container.appendChild(el);
-                });
-            },
-            filterEmployees: () => BulkModal.renderEmployees(),
+                    </td>
+                    <td class="px-6 py-4 text-right">
+                        <button onclick="openEmployeeDetail('${emp.cedula}')" class="font-medium text-brand-600 dark:text-brand-500 hover:underline">Gestionar</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
 
-            toggle: (cedula) => {
-                if (BulkModal.selected.has(cedula)) BulkModal.selected.delete(cedula);
-                else BulkModal.selected.add(cedula);
-                document.getElementById('bulk-count').innerText = BulkModal.selected.size;
-                BulkModal.renderEmployees();
-            },
-
-            selectAll: () => {
-                // Select currently filtered
-                const term = document.getElementById('bulk-emp-search').value.toLowerCase();
-                BulkModal.employees.filter(e =>
-                    e.nombre.toLowerCase().includes(term) || e.cedula.includes(term)
-                ).forEach(e => BulkModal.selected.add(e.cedula));
-
-                document.getElementById('bulk-count').innerText = BulkModal.selected.size;
-                BulkModal.renderEmployees();
-            },
-
-            submit: () => {
-                if (BulkModal.selected.size === 0) return alert("Selecciona al menos un empleado.");
-                const tema = BulkModal.currentTema;
-                const start = document.getElementById('bulk-start').value;
-                const end = document.getElementById('bulk-end').value;
-                const link = document.getElementById('bulk-link').value;
-
-                if (!start) return alert("Selecciona fecha de inicio.");
-
-                const cedulas = Array.from(BulkModal.selected); // Convert Set to Array
-                API.assignTrainingMask(cedulas, tema, start, end, link);
+            if (list.length > 100) {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td colspan="4" class="text-center py-4 text-xs text-gray-400">Mostrando 100 de ${list.length} resultados... usa los filtros</td>`;
+                tbody.appendChild(tr);
             }
-        };
+        }
 
-        // DIRECTORY CONTROLLER
-        const Directory = {
-            data: [],
-            load: function () {
-                if (this.data.length === 0) API.getDirectory();
-                else this.render(JSON.stringify(this.data)); // Use cache if avail
-            },
-            refresh: function () { API.getDirectory(); },
-            render: function (json) {
-                UI.loader(false);
-                const list = typeof json === 'string' ? JSON.parse(json) : json;
-                Directory.data = list;
-                Directory.filter();
-            },
-            filter: function () {
-                const term = document.getElementById('dir-search').value.toLowerCase();
-                const tbody = document.getElementById('dir-table-body');
-                tbody.innerHTML = '';
+        function openEmployeeDetail(cedula) {
+            CURRENT_CEDULA_OPENED = cedula; // Store for Save
+            showLoading(true);
 
-                const filtered = Directory.data.filter(e =>
-                    String(e.nombre).toLowerCase().includes(term) ||
-                    String(e.cargo).toLowerCase().includes(term) ||
-                    String(e.area).toLowerCase().includes(term) ||
-                    String(e.cedula).includes(term)
-                );
+            google.script.run
+                .withSuccessHandler(onEmployeeLoaded)
+                .withFailureHandler(err => { showToast(err.message, "error"); showLoading(false); })
+                .getEmployeeKardex(cedula, GLOBAL_MATRIZ_FILTER);
+        }
 
-                if (filtered.length === 0) {
-                    document.getElementById('dir-empty').classList.remove('hidden');
-                    return;
+        function loadGlobalFilters() {
+            google.script.run
+                .withSuccessHandler(onFiltersLoaded)
+                .getFilterOptions();
+        }
+
+        function onFiltersLoaded(options) {
+            const select = document.getElementById('globalMatrixFilter');
+            const selectModal = document.getElementById('modalMatrixFilter');
+
+            options.forEach(opt => {
+                const el = document.createElement('option');
+                el.value = opt;
+                el.textContent = opt;
+                select.appendChild(el.cloneNode(true));
+                selectModal.appendChild(el);
+            });
+        }
+
+        function onEmployeeLoaded(response) {
+            showLoading(false);
+            if (response.error) return showToast(response.error, "error");
+
+            // Setup State
+            CURRENT_EMPLOYEE_DATA = response.employee;
+            CURRENT_KARDEX = response.kardex.map(item => ({ ...item, _uiId: Math.random().toString(36).substr(2, 9) })); // Add temp UI ID for rendering
+            PENDING_CHANGES = [];
+
+            // Open Modal
+            document.getElementById('modal-emp-name').textContent = response.employee.nombre;
+            document.getElementById('modal-emp-cedula').textContent = CURRENT_CEDULA_OPENED;
+
+            document.getElementById('modal-emp-job').textContent = response.employee.cargo;
+            document.getElementById('modal-emp-area').textContent = response.employee.area;
+
+            document.getElementById('modal-employee-detail').classList.remove('hidden');
+            renderKardexGrid();
+        }
+
+        function saveChanges() {
+            // Calculate diffs between CURRENT_KARDEX and initial state? 
+            // Simplified: We assume CURRENT_KARDEX holds the truth.
+            // But to minimize traffic, we should track what actually changed.
+            // For V1, let's look for "dirty" flags or just send everything that is different from original?
+            // Actually, let's keep it simple: PENDING_CHANGES array could be complex to manage with UI edits.
+            // Better strategy: Compare CURRENT_KARDEX vs what we downloaded? No, simpler: 
+            // We just construct the payload based on the rows provided.
+
+            // Wait, we need to know Actions: INSERT, UPDATE, DELETE.
+            // rows with type='SUGGESTION' -> If user modified status != PENDIENTE or dates, it becomes INSERT.
+            // rows with type='DB_RECORD' -> If modified, UPDATE.
+            // rows deleted via Trash -> DELETE (we need to track these removals in a separate array 'DELETED_UUIDS').
+
+            // Let's implement a 'dirty' check on the current list + deleted list.
+
+            const payload = {
+                cedula: document.getElementById('modal-emp-cedula').textContent,
+                changes: []
+            };
+
+            // 1. Check active rows
+            CURRENT_KARDEX.forEach(row => {
+                // Logic to detect change:
+                // If it's a SUGGESTION and Status != PENDIENTE or has Dates -> INSERT
+                // If it's a DB_RECORD and values changed -> UPDATE (We can just always UPDATE DB_RECORDs for simplicity if efficient enough, or check equality)
+
+                if (row.type === 'SUGGESTION') {
+                    // If user touched it, or if we want to "Assign Selected", we treat as INSERT
+                    // Condition: Status != PENDIENTE OR manually selected for assignment
+                    if (row.status !== 'PENDIENTE' || row._forceAssign) {
+                        payload.changes.push({ action: 'INSERT', data: row });
+                    }
+                } else if (row.type === 'DB_RECORD') {
+                    // Ideally check if changed. For now, assume update if present is safest/easiest 
+                    // (or implement deep compare). Let's optimistically attributes change.
+                    payload.changes.push({ action: 'UPDATE', uuid: row.uuid, data: row });
+                } else if (row.type === 'NEW_VERSION') {
+                    payload.changes.push({ action: 'INSERT', data: row });
                 }
-                document.getElementById('dir-empty').classList.add('hidden');
+            });
 
-                // Pagination limit for performance
-                filtered.slice(0, 100).forEach(e => {
-                    const tr = document.createElement('tr');
-                    tr.className = "hover:bg-slate-50 transition-colors border-b border-slate-50";
-                    tr.innerHTML = `
-                        <td class="px-6 py-4 font-mono text-slate-500">${e.cedula}</td>
-                        <td class="px-6 py-4 font-semibold text-slate-800">${e.nombre}</td>
-                        <td class="px-6 py-4 text-slate-600 text-xs uppercase">${e.cargo}</td>
-                        <td class="px-6 py-4 text-slate-500 text-xs">${e.area || '-'}</td>
-                        <td class="px-6 py-4 text-center">
-                            <button onclick="goToDetail('${e.cedula}')" class="text-blue-600 hover:text-blue-800 text-sm font-bold">Ver</button>
-                        </td>
-                    `;
-                    tbody.appendChild(tr);
+            // 2. Check Deleted
+            if (window.DELETED_UUIDS) {
+                window.DELETED_UUIDS.forEach(uuid => {
+                    payload.changes.push({ action: 'DELETE', uuid: uuid });
                 });
             }
-        };
 
-        // MODAL CONTROLLER
-        const Modal = {
-            open: function () {
-                const name = document.getElementById('emp-name').innerText;
-                const cedula = document.getElementById('emp-cedula').innerText.replace('ID: ', '');
+            if (payload.changes.length === 0) return showToast("No hay cambios pendientes", "info");
 
-                document.getElementById('assign-name-display').innerText = name;
-                document.getElementById('assign-cedula').value = cedula.trim();
-                document.getElementById('assign-tema').value = '';
+            document.getElementById('modal-loading').classList.remove('hidden');
 
-                document.getElementById('modal-assign').classList.remove('hidden');
-            },
-            close: function () {
-                document.getElementById('modal-assign').classList.add('hidden');
-            },
-            submit: function () {
-                const cedula = document.getElementById('assign-cedula').value;
-                const tema = document.getElementById('assign-tema').value;
-                const estado = document.getElementById('assign-estado').value;
+            google.script.run
+                .withSuccessHandler(() => {
+                    document.getElementById('modal-loading').classList.add('hidden');
+                    showToast("Cambios guardados exitosamente");
+                    openEmployeeDetail(CURRENT_CEDULA_OPENED); // Reload for fresh data
+                    window.DELETED_UUIDS = [];
+                })
+                .withFailureHandler(err => {
+                    document.getElementById('modal-loading').classList.add('hidden');
+                    showToast("Error al guardar: " + err.message, "error");
+                })
+                .saveKardexChanges(payload);
+        }
 
-                if (!tema) return alert("Escribe un tema");
 
-                API.assignTraining(cedula, tema, estado);
+        // --- UI LOGIC ---------------------------------
+
+        function renderKardexGrid() {
+            const tbody = document.getElementById('kardex-table-body');
+            tbody.innerHTML = '';
+
+            const filter = document.getElementById('modalMatrixFilter').value;
+
+            // Sort: Required Matrix first, then others? Or by Name?
+            // Group by Matrix Category
+
+            CURRENT_KARDEX.forEach((row, index) => {
+                if (filter !== "TODOS" && row.category !== filter) return;
+
+                const tr = document.createElement('tr');
+                tr.className = "bg-white border-b hover:bg-gray-50 transition-colors";
+                if (row.status === 'FINALIZADO') tr.classList.add("bg-green-50");
+
+                // Badge Logic
+                let statusBadge = '';
+                if (row.status === 'PENDIENTE') statusBadge = '<span class="bg-gray-100 text-gray-800 text-xs font-medium px-2.5 py-0.5 rounded">Pendiente</span>';
+                else if (row.status === 'EN CURSO') statusBadge = '<span class="bg-yellow-100 text-yellow-800 text-xs font-medium px-2.5 py-0.5 rounded">En Curso</span>';
+                else if (row.status === 'FINALIZADO') statusBadge = '<span class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded">Finalizado</span>';
+
+                tr.innerHTML = `
+                    <td class="w-4 p-4">
+                        <div class="flex items-center">
+                            <input id="chk-${index}" type="checkbox" ${row._selected ? 'checked' : ''} onchange="toggleRowSelection(${index})" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500">
+                        </div>
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="font-medium text-gray-900">${row.topic}</div>
+                        ${row.isRequired ? '<span class="text-[10px] text-red-500 font-bold border border-red-200 px-1 rounded">REQUERIDO</span>' : ''}
+                    </td>
+                    <td class="px-6 py-4 text-gray-700 font-medium">
+                        ${row.realTopic || '-'}
+                    </td>
+                    <td class="px-6 py-4 text-gray-500">${row.category}</td>
+                    <td class="px-6 py-4">
+                        <select onchange="updateRowData(${index}, 'status', this.value)" class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-32 p-1.5">
+                            <option value="PENDIENTE" ${row.status === 'PENDIENTE' ? 'selected' : ''}>Pendiente</option>
+                            <option value="EN CURSO" ${row.status === 'EN CURSO' ? 'selected' : ''}>En Curso</option>
+                            <option value="FINALIZADO" ${row.status === 'FINALIZADO' ? 'selected' : ''}>Finalizado</option>
+                        </select>
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="flex gap-2">
+                            <input type="date" value="${row.startDate || ''}" onchange="updateRowData(${index}, 'startDate', this.value)" class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg block w-32 p-1">
+                            <input type="date" value="${row.endDate || ''}" onchange="updateRowData(${index}, 'endDate', this.value)" class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg block w-32 p-1">
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 text-center">
+                        <button onclick="createNewVersion(${index})" title="Nueva Versión" class="text-blue-600 hover:text-blue-800 mx-1"><i class="fas fa-plus-circle"></i></button>
+                        ${row.type !== 'SUGGESTION' ? `<button onclick="deleteVersion(${index})" title="Eliminar" class="text-red-500 hover:text-red-700 mx-1"><i class="fas fa-trash"></i></button>` : ''}
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function updateRowData(index, field, value) {
+            // Because filter renders subset, index might be tricky if we use array index directly.
+            // Better to find by _uiId if we were rigorous, but map renders correctly for now if consistent.
+            // Wait, render loop uses CURRENT_KARDEX[index]. If filter acts, the passed index parameter from loop is the Real Index?
+            // Actually in the forEach above: loop is over CURRENT_KARDEX. 
+            // BUT if filter is active, indices are skipped. The forEach 'index' is the real index in CURRENT_KARDEX.
+            // So this approach is safe.
+
+            CURRENT_KARDEX[index][field] = value;
+            if (field === 'status' && value !== 'PENDIENTE' && CURRENT_KARDEX[index].type === 'SUGGESTION') {
+                CURRENT_KARDEX[index]._forceAssign = true; // Mark to be saved
             }
-        };
+        }
 
-        // UI HELPERS
-        const UI = {
-            loader: (show) => document.getElementById('loader').classList.toggle('hidden', !show),
-            renderStats: (json) => {
-                UI.loader(false);
-                const data = JSON.parse(json);
-                const kpi = data.kpi || { total_asignaciones: 0, completadas: 0, pendientes: 0, vencidas: 0, cumplimiento: 0 };
+        function createNewVersion(index) {
+            const original = CURRENT_KARDEX[index];
+            const newRow = { ...original }; // Deep copy
+            newRow.type = 'NEW_VERSION';
+            newRow.uuid = null;
+            newRow.status = 'PENDIENTE';
+            newRow.startDate = '';
+            newRow.endDate = '';
+            newRow._uiId = Math.random().toString(36).substr(2, 9);
 
-                document.getElementById('kpi-total').innerText = data.total_empleados;
+            // Insert after current
+            CURRENT_KARDEX.splice(index + 1, 0, newRow);
+            renderKardexGrid();
+        }
 
-                // Nuevas Stats
-                document.getElementById('kpi-compliance').innerText = kpi.cumplimiento;
-                document.getElementById('kpi-assignments').innerText = kpi.asignadas_manual; // FIX: Mostrar solo asignadas (manual) para coincidir con lista
-                document.getElementById('kpi-pending').innerText = kpi.pendientes;
-                document.getElementById('kpi-overdue').innerText = kpi.vencidas;
+        function deleteVersion(index) {
+            if (!confirm("¿Eliminar este registro de base de datos?")) return;
 
-                Charts.renderPie('chart-nivel', data.por_nivel);
-                Charts.renderBar('chart-area', data.por_area);
-            },
-            renderEmployee: (json) => {
-                UI.loader(false);
-                const res = JSON.parse(json);
-                if (!res.found) return alert("No encontrado");
-
-                // Switch to Search View
-                Router.navigate('search');
-
-                document.getElementById('search-results').classList.remove('hidden');
-                const emp = res.empleado;
-
-                // FIX: Usamos keys normalizadas que envía el Backend v3.1
-                // Prioridad: NOMBRE_COMPLETO > NOMBRE > NOMBRES (Case insensitive handled by backend keys)
-                const nombre = emp['NOMBRE_COMPLETO'] || emp['NOMBRE'] || emp['NOMBRES'] || 'Sin Nombre';
-                const cedula = emp['CEDULA'] || emp['DOCUMENTO'] || emp['ID'] || 'Sin ID';
-                const cargo = emp['DESCRIPCION_CARGO'] || emp['CARGO'] || 'Sin Cargo';
-
-                document.getElementById('emp-name').innerText = nombre;
-                document.getElementById('emp-cedula').innerText = `ID: ${cedula}`;
-                document.getElementById('emp-cargo').innerText = cargo;
-
-                const tbody = document.getElementById('training-list');
-                tbody.innerHTML = '';
-
-                // Ordenar por Enfoque
-                const planOrdenado = res.plan.sort((a, b) => (a.ENFOQUE || '').localeCompare(b.ENFOQUE || ''));
-
-                planOrdenado.forEach(t => {
-                    const statusClass = t.ESTADO === 'COMPLETADO' ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800';
-                    const enfoque = t.ENFOQUE || '-';
-
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td class="px-6 py-4 font-bold text-slate-700 text-xs uppercase">${enfoque}</td>
-                        <td class="px-6 py-4 font-medium">${t.TEMA}</td>
-                        <td class="px-6 py-4 text-xs text-slate-500">${t.ORIGEN || 'MATRIZ'}</td>
-                        <td class="px-6 py-4"><span class="px-2 py-1 rounded-full text-xs font-bold ${statusClass}">${t.ESTADO}</span></td>
-                    `;
-                    tbody.appendChild(tr);
-                });
+            const row = CURRENT_KARDEX[index];
+            if (row.uuid) {
+                if (!window.DELETED_UUIDS) window.DELETED_UUIDS = [];
+                window.DELETED_UUIDS.push(row.uuid);
             }
-        };
 
-        const Charts = {
-            renderPie: (id, data) => {
-                // Destroy existing to avoid overlap
-                if (Charts.active[id]) Charts.active[id].destroy();
-
-                const ctx = document.getElementById(id).getContext('2d');
-                Charts.active[id] = new Chart(ctx, {
-                    type: 'doughnut',
-                    data: { labels: Object.keys(data), datasets: [{ data: Object.values(data), backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444'] }] },
-                    options: { cutout: '75%', plugins: { legend: { position: 'right' } } }
-                });
-            },
-            renderBar: (id, data) => {
-                if (Charts.active[id]) Charts.active[id].destroy();
-
-                const ctx = document.getElementById(id).getContext('2d');
-                Charts.active[id] = new Chart(ctx, {
-                    type: 'bar',
-                    data: { labels: Object.keys(data), datasets: [{ label: 'Empleados', data: Object.values(data), backgroundColor: '#3b82f6', borderRadius: 4 }] },
-                    options: { scales: { y: { beginAtZero: true } }, plugins: { legend: { display: false } } }
-                });
-            },
-            active: {}
-        };
-
-        // GLOBAL ACTIONS
-        function performSearch() {
-            const val = document.getElementById('search-input').value;
-            if (val) API.searchEmployee(val);
-        }
-        function goToDetail(cedula) {
-            API.searchEmployee(cedula);
-        }
-        function saveConfig() {
-            API.saveConfig(document.getElementById('config-sheet-id').value);
+            CURRENT_KARDEX.splice(index, 1);
+            renderKardexGrid();
         }
 
-        window.onload = function () { Router.navigate('dashboard'); }
+        function toggleSelectAll(checkbox) {
+            const isChecked = checkbox.checked;
+            const filter = document.getElementById('modalMatrixFilter').value;
+            CURRENT_KARDEX.forEach(row => {
+                if (filter === "TODOS" || row.category === filter) {
+                    row._selected = isChecked;
+                }
+            });
+            renderKardexGrid();
+        }
+
+        function toggleRowSelection(index) {
+            CURRENT_KARDEX[index]._selected = !CURRENT_KARDEX[index]._selected;
+        }
+
+        function applyBulkAssign() {
+            // Sets manual status/force assign for selected rows
+            let count = 0;
+            CURRENT_KARDEX.forEach(row => {
+                if (row._selected) {
+                    row.status = 'EN CURSO'; // Default bulk action
+                    row._forceAssign = true;
+                    row._selected = false; // Deselect after action
+                    count++;
+                }
+            });
+            if (count > 0) {
+                renderKardexGrid();
+                showToast(`${count} registros listos para guardar`);
+                document.getElementById('chkSelectAll').checked = false;
+            } else {
+                showToast("Seleccione registros primero", "info");
+            }
+        }
+
+        // --- UTILS ---------------------------------
+
+        function closeModal() {
+            document.getElementById('modal-employee-detail').classList.add('hidden');
+        }
+
+        function showLoading(show) {
+            // Implement if needed for search
+        }
+
+        function showToast(msg, type = 'success') {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-message').textContent = msg;
+
+            // Color logic
+            const icon = document.getElementById('toast-icon');
+            if (type === 'error') {
+                icon.className = "inline-flex items-center justify-center flex-shrink-0 w-8 h-8 text-red-500 bg-red-100 rounded-lg";
+                icon.innerHTML = '<i class="fas fa-times"></i>';
+            } else {
+                icon.className = "inline-flex items-center justify-center flex-shrink-0 w-8 h-8 text-green-500 bg-green-100 rounded-lg";
+                icon.innerHTML = '<i class="fas fa-check"></i>';
+            }
+
+            toast.classList.remove('translate-y-20');
+            setTimeout(() => {
+                toast.classList.add('translate-y-20');
+            }, 3000);
+        }
+
+        // Flowbite Init (if needed manually)
     </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.js"></script>
 </body>
 
 </html>
